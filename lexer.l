@@ -24,6 +24,8 @@ newline     [\n]
 "for"              { printf("[TOKEN] FOR (línea %d)\n", line); return FOR; }
 "return"           { printf("[TOKEN] RETURN (línea %d)\n", line); return RETURN; }
 "in"               { printf("[TOKEN] IN (línea %d)\n", line); return IN; }
+"true"             { printf("[TOKEN] IDENTIFIER (línea %d): true\n", line); yylval.name = strdup(yytext); return IDENTIFIER; }
+"false"            { printf("[TOKEN] IDENTIFIER (línea %d): false\n", line); yylval.name = strdup(yytext); return IDENTIFIER; }
 "{"                { printf("[TOKEN] LBRACE (línea %d)\n", line); return LBRACE; }
 "}"                { printf("[TOKEN] RBRACE (línea %d)\n", line); return RBRACE; }
 "("                { printf("[TOKEN] LPAREN (línea %d)\n", line); return LPAREN; }
@@ -48,7 +50,7 @@ newline     [\n]
 "char"             { printf("[TOKEN] CHAR_TYPE (línea %d)\n", line); return CHAR_TYPE; }
 "str"              { printf("[TOKEN] STR_TYPE (línea %d)\n", line); return STR_TYPE; }
 ":"                { printf("[TOKEN] COLON (línea %d)\n", line); return COLON; }
-"//".*             { printf("[TOKEN] COMMENT (línea %d): %s\n", line, yytext); /* Comentarios de una línea */ }
+"//".*             { printf("[TOKEN] COMMENT (línea %d): %s\n", line, yytext); /* Ignorar comentarios */ }
 {alpha}            { printf("[TOKEN] IDENTIFIER (línea %d): %s\n", line, yytext); yylval.name = strdup(yytext); return IDENTIFIER; }
 {numbers}          { printf("[TOKEN] NUMBER (línea %d): %s\n", line, yytext); yylval.number = atof(yytext); return NUMBER; }
 \'([^\'\\]|\\.)\'  { printf("[TOKEN] CHAR (línea %d): %s\n", line, yytext); yylval.name = strdup(yytext); return CHAR; }

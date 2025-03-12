@@ -1,8 +1,11 @@
 %{
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 int yylex();
 int yyerror(char *s);
 extern int line;
+extern char* yytext;
 %}
 
 %union {
@@ -18,15 +21,19 @@ extern int line;
 %token OTHER
 
 %left AND
-%left LT GT EQ NEQ
+%left EQ NEQ
+%left LT GT
 %left PLUS MINUS
 %left MUL DIV MOD
 
 %%
 
-prog: stmts ;
+program:
+    stmts
+;
 
 stmts:
+    /* vacío */
     | stmt stmts
 ;
 
@@ -36,15 +43,17 @@ stmt:
     | if_stmt
     | return_stmt SEMICOLON
     | expr SEMICOLON
+    | SEMICOLON /* Permitir punto y coma extra */
 ;
 
 function:
     FN IDENTIFIER LPAREN params RPAREN ARROW type LBRACE stmts RBRACE
+    | FN IDENTIFIER LPAREN params RPAREN LBRACE stmts RBRACE  /* Función sin tipo de retorno */
 ;
 
 declaration:
     LET opt_mut IDENTIFIER COLON type ASSIGN expr
-    | LET opt_mut IDENTIFIER ASSIGN expr  /* Para permitir inferencia de tipos */
+    | LET opt_mut IDENTIFIER ASSIGN expr  /* Inferencia de tipos */
 ;
 
 if_stmt:
@@ -52,13 +61,18 @@ if_stmt:
 ;
 
 return_stmt:
-    RETURN expr
+    RETURN
+    | RETURN expr
 ;
 
 params:
+    /* vacío */
+    | param_list
+;
+
+param_list:
     param
-    | param COMMA params
-    | /* vacío */
+    | param COMMA param_list
 ;
 
 param:
@@ -74,10 +88,12 @@ type:
 ;
 
 opt_else:
+    /* vacío */
     | ELSE LBRACE stmts RBRACE
 ;
 
 opt_mut:
+    /* vacío */
     | MUT
 ;
 
@@ -121,22 +137,30 @@ factor:
 ;
 
 args:
+    /* vacío */
+    | expr_list
+;
+
+expr_list:
     expr
-    | expr COMMA args
-    | /* vacío */
+    | expr COMMA expr_list
 ;
 
 %%
 
 int yyerror(char *s) {
-    printf("\n[ERROR SINTÁCTICO] %s en línea %d!!!\n", s, line);
+    printf("[ERROR SINTÁCTICO] %s en línea %d!!!\n", s, line);
     return 0;
 }
 
 int main() {
-    printf("\n>>> ANÁLISIS LÉXICO Y SINTÁCTICO <<<\n");
-    printf("Procesando el archivo...\n\n");
-    yyparse();
-    printf("\n>>> ANÁLISIS COMPLETADO <<<\n");
+    printf(">>> ANÁLISIS LÉXICO Y SINTÁCTICO <<<\n");
+    printf("Procesando el archivo...\n");
+    int result = yyparse();
+    if (result == 0) {
+        printf(">>> ANÁLISIS COMPLETADO SIN ERRORES <<<\n");
+    } else {
+        printf(">>> ANÁLISIS COMPLETADO CON ERRORES <<<\n");
+    }
     return 0;
 }
